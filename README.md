@@ -1,5 +1,3 @@
-### README.md
-
 # Car Turn Detection and Tracking System
 ![Alt text](sample.png)
 This project implements a car tracking system using YOLOv8 for object detection and DeepSort for multi-object tracking to identify and count cars making specific turns (right, left, U-turn) in a video. It also includes a Flask-based web application for annotating zones in the video, which are used to determine car movements.
