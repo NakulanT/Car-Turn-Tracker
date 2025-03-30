@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+
+    <title>Annotate Zone</title>
+    <script>
+        let points = [];
+        let otherZones = JSON.parse('{{ other_zones | tojson | safe }}');
+        
+        function initCanvas() {
+            let canvas = document.getElementById("canvas");
+            let ctx = canvas.getContext("2d");
+            let img = new Image();
+            img.src = "{{ frame_url }}";
+            img.onload = function() {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+
+                // Draw other zones
+                ctx.strokeStyle = "blue";
+                ctx.lineWidth = 2;
+                for (let key in otherZones) {
+                    let zone = otherZones[key];
+                    if (zone.length === 4) {
+                        ctx.beginPath();
+                        ctx.moveTo(zone[0][0], zone[0][1]);
+                        ctx.lineTo(zone[1][0], zone[1][1]);
+                        ctx.lineTo(zone[2][0], zone[2][1]);
+                        ctx.lineTo(zone[3][0], zone[3][1]);
+                        ctx.closePath();
+                        ctx.stroke();
+                    }
+                }
+            };
+        }
+
+        function getCursorPosition(event) {
+            if (points.length >= 4) return;
+
+            let rect = event.target.getBoundingClientRect();
+            let x = event.clientX - rect.left;
+            let y = event.clientY - rect.top;
+            points.push([x, y]);
+
+            let canvas = document.getElementById("canvas");
+            let ctx = canvas.getContext("2d");
+
+            ctx.fillStyle = "red";
+            ctx.beginPath();
+            ctx.arc(x, y, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (points.length === 4) {
+                ctx.strokeStyle = "yellow";
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(points[0][0], points[0][1]);
+                ctx.lineTo(points[1][0], points[1][1]);
+                ctx.lineTo(points[2][0], points[2][1]);
+                ctx.lineTo(points[3][0], points[3][1]);
+                ctx.closePath();
+                ctx.stroke();
+            }
+        }
+
+        function resetSelection() {
+            points = [];
+            initCanvas();
+        }
+
+        function saveZone() {
+            if (points.length !== 4) {
+                alert("Please select exactly 4 points.");
+                return;
+            }
+
+            fetch("/save_zone", {
+                method: "POST",
+                body: JSON.stringify({ zone: "{{ zone }}", points: points }),
+                headers: { "Content-Type": "application/json" }
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                window.location.href = "/";
+            });
+        }
+    </script>
+</head>
+<body onload="initCanvas()">
+    <h2>Mark the Zone ({{ zone }})</h2>
+    <canvas id="canvas" onclick="getCursorPosition(event)"></canvas>
+    <button onclick="resetSelection()">Reset</button>
+    <button onclick="saveZone()">Save Zone</button>
+</body>
+</html>
