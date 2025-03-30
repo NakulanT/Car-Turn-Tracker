@@ -26,7 +26,9 @@ The goal is to:
    - Handles scaling for large frames and saves zones in original resolution.
 4. **Output**:
    - Generates an output video (`output_video.mp4`) with annotated bounding boxes.
-   - Prints a detailed analysis of car counts and turns.
+   - A detailed analysis of car counts and turns.
+  ![Alt text](analysis.png)
+
 
 ## Prerequisites
 - Python 3.8+
